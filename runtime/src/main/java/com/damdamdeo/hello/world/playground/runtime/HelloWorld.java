@@ -1,5 +1,5 @@
 package com.damdamdeo.hello.world.playground.runtime;
 
-public interface HelloWorld<T> {
-    T sayHello();
+public abstract class HelloWorld<T> {
+    public abstract T sayHello();
 }

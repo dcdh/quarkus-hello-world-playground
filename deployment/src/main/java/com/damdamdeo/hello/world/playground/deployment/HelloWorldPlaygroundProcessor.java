@@ -29,7 +29,7 @@ class HelloWorldPlaygroundProcessor {
                 .className(HelloWorld.class.getName() + "Generated")
                 .signature(
                         SignatureBuilder.forClass()
-                                .addInterface(
+                                .setSuperClass(
                                         Type.parameterizedType(
                                                 Type.classType(HelloWorld.class),
                                                 Type.classType(String.class))))
