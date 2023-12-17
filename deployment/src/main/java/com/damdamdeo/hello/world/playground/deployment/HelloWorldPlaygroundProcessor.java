@@ -1,7 +1,11 @@
 package com.damdamdeo.hello.world.playground.deployment;
 
 import com.damdamdeo.hello.world.playground.runtime.HelloWorld;
+import com.damdamdeo.hello.world.playground.runtime.HelloWorldDependency;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.InstanceHandle;
 import io.quarkus.arc.deployment.GeneratedBeanBuildItem;
 import io.quarkus.arc.deployment.GeneratedBeanGizmoAdaptor;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -11,6 +15,8 @@ import io.quarkus.gizmo.*;
 import jakarta.inject.Singleton;
 import org.objectweb.asm.Opcodes;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
 import java.util.function.BooleanSupplier;
 
 class HelloWorldPlaygroundProcessor {
@@ -36,11 +42,30 @@ class HelloWorldPlaygroundProcessor {
                 .build();
         beanClassCreator.addAnnotation(Singleton.class);
         beanClassCreator.addAnnotation(DefaultBean.class);
+        // constructor
+        final MethodCreator constructor = beanClassCreator.getMethodCreator(MethodDescriptor.INIT, void.class, HelloWorldDependency.class);
+        constructor.setModifiers(Modifier.PUBLIC);
+        ResultHandle supportHandle = getFromCDI(constructor, HelloWorldDependency.class.getName());
+        constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(HelloWorld.class, HelloWorldDependency.class), constructor.getThis(), supportHandle);
+        constructor.returnValue(null);
+
         // sayHello
         final MethodCreator clazzMethod = beanClassCreator.getMethodCreator("sayHello", Object.class);
         clazzMethod.setModifiers(Opcodes.ACC_PUBLIC);
         clazzMethod.returnValue(clazzMethod.load("HelloWorldGenerated"));
         beanClassCreator.close();
+    }
+
+    // https://github.com/quarkiverse/quarkus-langchain4j/blob/main/core/deployment/src/main/java/io/quarkiverse/langchain4j/deployment/AiServicesProcessor.java#L627 :)
+    private ResultHandle getFromCDI(final MethodCreator mc, final String className) {
+        // Arc.container().instance(className).get();
+        final ResultHandle containerHandle = mc.invokeStaticMethod(MethodDescriptor.ofMethod(Arc.class, "container", ArcContainer.class));
+        final ResultHandle instanceHandle = mc.invokeInterfaceMethod(
+                MethodDescriptor.ofMethod(ArcContainer.class, "instance", InstanceHandle.class, Class.class,
+                        Annotation[].class),
+                containerHandle, mc.loadClassFromTCCL(className),
+                mc.newArray(Annotation.class, 0));
+        return mc.invokeInterfaceMethod(MethodDescriptor.ofMethod(InstanceHandle.class, "get", Object.class), instanceHandle);
     }
 
     private static class ShouldGenerateBean implements BooleanSupplier {
