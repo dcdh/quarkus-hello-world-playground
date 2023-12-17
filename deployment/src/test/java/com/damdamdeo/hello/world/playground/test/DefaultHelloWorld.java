@@ -6,7 +6,7 @@ import jakarta.inject.Singleton;
 
 @Singleton
 public class DefaultHelloWorld extends HelloWorld<String> {
-    public DefaultHelloWorld(final HelloWorldDependency helloWorldDependency) {
+    public DefaultHelloWorld(final HelloWorldDependency<String> helloWorldDependency) {
         super(helloWorldDependency);
     }
 

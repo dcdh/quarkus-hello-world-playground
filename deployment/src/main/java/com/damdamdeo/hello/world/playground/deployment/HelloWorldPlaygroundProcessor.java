@@ -12,6 +12,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.gizmo.*;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.objectweb.asm.Opcodes;
 
@@ -43,9 +44,10 @@ class HelloWorldPlaygroundProcessor {
         beanClassCreator.addAnnotation(Singleton.class);
         beanClassCreator.addAnnotation(DefaultBean.class);
         // constructor
-        final MethodCreator constructor = beanClassCreator.getMethodCreator(MethodDescriptor.INIT, void.class, HelloWorldDependency.class);
+        final MethodCreator constructor = beanClassCreator.getMethodCreator(MethodDescriptor.INIT, void.class,
+                String.format("%s<%s>", HelloWorldDependency.class.getName(), String.class.getName()));
         constructor.setModifiers(Modifier.PUBLIC);
-        ResultHandle supportHandle = getFromCDI(constructor, HelloWorldDependency.class.getName());
+        ResultHandle supportHandle = getFromCDI(constructor, String.format("%s<%s>", HelloWorldDependency.class.getName(), String.class.getName()));
         constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(HelloWorld.class, HelloWorldDependency.class), constructor.getThis(), supportHandle);
         constructor.returnValue(null);
 
