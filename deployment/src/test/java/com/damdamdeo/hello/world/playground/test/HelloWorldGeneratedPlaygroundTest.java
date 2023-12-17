@@ -19,7 +19,7 @@ public class HelloWorldGeneratedPlaygroundTest {
                             "application.properties"));
 
     @Inject
-    HelloWorld helloWorld;
+    HelloWorld<String> helloWorld;
 
     @Test
     public void shouldSayHello() {

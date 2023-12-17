@@ -7,9 +7,7 @@ import io.quarkus.arc.deployment.GeneratedBeanGizmoAdaptor;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.gizmo.ClassCreator;
-import io.quarkus.gizmo.ClassOutput;
-import io.quarkus.gizmo.MethodCreator;
+import io.quarkus.gizmo.*;
 import jakarta.inject.Singleton;
 import org.objectweb.asm.Opcodes;
 
@@ -29,12 +27,17 @@ class HelloWorldPlaygroundProcessor {
         final ClassOutput beansClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItemBuildProducer);
         final ClassCreator beanClassCreator = ClassCreator.builder().classOutput(beansClassOutput)
                 .className(HelloWorld.class.getName() + "Generated")
-                .interfaces(HelloWorld.class)
+                .signature(
+                        SignatureBuilder.forClass()
+                                .addInterface(
+                                        Type.parameterizedType(
+                                                Type.classType(HelloWorld.class),
+                                                Type.classType(String.class))))
                 .build();
         beanClassCreator.addAnnotation(Singleton.class);
         beanClassCreator.addAnnotation(DefaultBean.class);
         // sayHello
-        final MethodCreator clazzMethod = beanClassCreator.getMethodCreator("sayHello", String.class);
+        final MethodCreator clazzMethod = beanClassCreator.getMethodCreator("sayHello", Object.class);
         clazzMethod.setModifiers(Opcodes.ACC_PUBLIC);
         clazzMethod.returnValue(clazzMethod.load("HelloWorldGenerated"));
         beanClassCreator.close();

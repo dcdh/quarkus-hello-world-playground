@@ -18,7 +18,7 @@ public class HelloWorldPlaygroundTest {
                 .addClass(DefaultHelloWorld.class));
 
     @Inject
-    HelloWorld helloWorld;
+    HelloWorld<String> helloWorld;
 
     @Test
     public void shouldSayHello() {
